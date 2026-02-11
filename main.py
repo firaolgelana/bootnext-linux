@@ -1,35 +1,40 @@
+#!/usr/bin/env python3
 import sys
-from core import system, boot
 import config
+from core import system, boot
+from ui import cli
 
-# Simple CLI entry for now to test logic
 def main():
-    print(f"--- {config.APP_NAME} v{config.VERSION} ---")
-    
-    # 1. System Check
+    # 1. Show Welcome
+    cli.banner(config.APP_NAME, config.VERSION)
+
+    # 2. Check System Requirements
     is_ready, msg = system.check_requirements()
     if not is_ready:
-        print(f"❌ Error: {msg}")
+        cli.error(msg)
         sys.exit(1)
 
-    # 2. Find Windows
-    print("🔍 Scanning for Windows...")
+    # 3. Search for the OS
+    cli.step("Scanning UEFI boot entries...")
     boot_id, label = boot.get_windows_entry()
+
+    if not boot_id:
+        cli.fail_search(config.WINDOWS_LABEL_KEYWORDS)
+        sys.exit(1)
+
+    # 4. Show Success and Ask Confirmation
+    cli.success(label, boot_id)
     
-    if boot_id:
-        print(f"✅ Found: {label} (ID: {boot_id})")
-        
-        # 3. User Confirmation
-        confirm = input("Reboot to Windows now? (y/n): ")
-        if confirm.lower() == 'y':
-            print("🚀 Setting boot target...")
+    if cli.ask_reboot(label):
+        cli.rebooting()
+        try:
             boot.set_next_boot(boot_id)
-            print("👋 Rebooting...")
             boot.reboot_system()
-        else:
-            print("Aborted.")
+        except Exception as e:
+            cli.error(f"Failed to set boot variable: {e}")
+            sys.exit(1)
     else:
-        print("❌ Could not find a Windows boot entry.")
+        cli.abort()
 
 if __name__ == "__main__":
     main()
