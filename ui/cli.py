@@ -40,3 +40,25 @@ def rebooting():
 
 def abort():
     print(f"{YELLOW}🛑 Operation cancelled.{RESET}")
+
+# ... keep existing imports and colors ...
+
+def ask_selection(entries):
+    """
+    Shows a menu and returns the selected entry dict.
+    """
+    print(f"\n{YELLOW}🎯 Multiple boot entries found. Please choose:{RESET}")
+    
+    for i, entry in enumerate(entries):
+        print(f"   {BOLD}[{i + 1}]{RESET} {entry['label']} (ID: {entry['id']})")
+        
+    while True:
+        try:
+            choice = input(f"\nEnter number (1-{len(entries)}): ").strip()
+            idx = int(choice) - 1
+            if 0 <= idx < len(entries):
+                return entries[idx]
+            else:
+                error("Invalid number. Try again.")
+        except ValueError:
+            error("Please enter a number.")

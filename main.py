@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import config
-from core import system, boot
+from core import system, boot, parser # Ensure parser is imported
 from ui import cli
 
 def main():
@@ -16,13 +16,33 @@ def main():
 
     # 3. Search for the OS
     cli.step("Scanning UEFI boot entries...")
-    boot_id, label = boot.get_windows_entry()
+    
+    # Get raw output
+    raw_output = boot.get_efibootmgr_output() # You might need to add this getter to boot.py
+    parsed_entries = parser.parse_boot_entries(raw_output)
+    
+    # Find matches
+    targets = parser.find_target_entries(parsed_entries, config.WINDOWS_LABEL_KEYWORDS)
 
-    if not boot_id:
+    selected_target = None
+
+    if len(targets) == 0:
         cli.fail_search(config.WINDOWS_LABEL_KEYWORDS)
         sys.exit(1)
+        
+    elif len(targets) == 1:
+        # Easy case: only one found
+        selected_target = targets[0]
+        
+    else:
+        # Complex case: Multiple found -> Show Menu
+        selected_target = cli.ask_selection(targets)
 
     # 4. Show Success and Ask Confirmation
+    # Unpack the dictionary
+    boot_id = selected_target['id']
+    label = selected_target['label']
+
     cli.success(label, boot_id)
     
     if cli.ask_reboot(label):

@@ -2,18 +2,15 @@ import subprocess
 from core import parser
 import config
 
-def get_windows_entry():
-    """Runs efibootmgr and finds Windows."""
+# Add this function
+def get_efibootmgr_output():
+    """Returns the raw text output of efibootmgr."""
     try:
         result = subprocess.run(["efibootmgr"], stdout=subprocess.PIPE, text=True, check=True)
-        entries = parser.parse_boot_entries(result.stdout)
-        
-        # Use keywords from config
-        boot_id, label = parser.find_windows_id(entries, config.WINDOWS_LABEL_KEYWORDS)
-        return boot_id, label
+        return result.stdout
     except Exception as e:
-        print(f"Error scanning boot entries: {e}")
-        return None, None
+        print(f"Error running efibootmgr: {e}")
+        return ""
 
 def set_next_boot(boot_id):
     """Sets BootNext variable."""
@@ -22,3 +19,4 @@ def set_next_boot(boot_id):
 
 def reboot_system():
     subprocess.run(["reboot"])
+
