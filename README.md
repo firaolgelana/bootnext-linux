@@ -83,7 +83,7 @@ sudo dnf install ./quickboot-1.0.0-1.noarch.rpm
 ### Download & Install
 
 ```bash
-wget https://github.com/yourrepo/releases/download/v1.0.0/quickboot-1.0.0-1-any.pkg.tar.zst
+wget https://github.com/firaolgelana/bootnext-linux/releases/latest/download/quickboot-1.0.0-1-any.pkg.tar.zst
 sudo pacman -U quickboot-1.0.0-1-any.pkg.tar.zst
 
 ```
